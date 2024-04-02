@@ -1,0 +1,165 @@
+﻿@using FluentValidation;
+@using Microsoft.AspNetCore.Mvc.Rendering;
+@using BlazorDatasource.Server.Models.Common;
+@using BlazorDatasource.Server.Models.Localization;
+@using BlazorDatasource.Shared.Services.Localization;
+@inject IValidator<LocaleResourceModel> Validator
+@inject ILocalizationService LocalizationService
+@if (LocaleResourceModel is not null)
+{
+    <EditForm Model="@LocaleResourceModel" OnSubmit="(async () => await HandleSubmitAsync())">
+        <FluentValidationSummary @ref="FluentValidation" />
+        <div class="overflow-hidden shadow sm:rounded-md">
+            <div class="bg-white px-4 py-4 sm:p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="@nameof(LocaleResourceModel.ResourceName)" class="text-sm font-medium text-secondary-700">@T["Languages.Resources.Fields.Name"]</label>
+                        <div class="mt-1">
+                            <InputText @bind-Value="LocaleResourceModel.ResourceName" class="w-full rounded-md border border-secondary-300 bg-white py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm" />
+                            <div class="block text-sm font-medium text-error-700">
+                                <ValidationMessage For="@(() => LocaleResourceModel.ResourceName)" />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="@nameof(LocaleResourceModel.ResourceValue)" class="text-sm font-medium text-secondary-700">@T["Languages.Resources.Fields.Value"]</label>
+                        <div class="mt-1">
+                            <InputText @bind-Value="LocaleResourceModel.ResourceValue" class="w-full rounded-md border border-secondary-300 bg-white py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm" />
+                            <div class="block text-sm font-medium text-error-700">
+                                <ValidationMessage For="@(() => LocaleResourceModel.ResourceValue)" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-secondary-100 px-4 py-3 rounded-md w-full md:w-auto flex flex-col-reverse md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-2 flex-shrink-0">
+                <button type="button" @onclick="CancelEditMode" class="mt-3 sm:mt-0 inline-flex justify-center items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-secondary-900 hover:bg-secondary-200 shadow-sm ring-1 ring-inset ring-secondary-300" disabled="@Busy">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="-ml-0.5 mr-1.5 h-5 w-5 text-secondary-400 hidden sm:block">
+                        <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+                    </svg>
+                    @T["Common.Cancel"]
+                </button>
+                <button type="submit" disabled="@Busy" class="inline-flex justify-center items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
+                    @if (Busy)
+                    {
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        @T["Common.Busy"]
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-ml-1 mr-3 h-5 w-5 hidden sm:block">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        @T["Common.Save"]
+                    }
+                </button>
+            </div>
+        </div>
+    </EditForm>
+}
+@code {
+
+    /// <summary>
+    /// Call after form is submitted and validated
+    /// </summary>
+    [Parameter]
+    public EventCallback<HandleSubmitEventCallbackArgs> ValidationResult { get; set; }
+
+    /// <summary>
+    /// True if we add, false if we update
+    /// </summary>
+    [Parameter]
+    public bool IsAdd { get; set; }
+
+    /// <summary>
+    /// Avoid concurrent requests
+    /// </summary>
+    [Parameter]
+    public bool Busy { get; set; }
+
+    /// <summary>
+    /// True if we are in edit mode, false if we are not
+    /// </summary>
+    [Parameter]
+    public bool EditMode { get; set; }
+
+    /// <summary>
+    /// Call when EditMode parameter is changed
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> EditModeChanged { get; set; }
+
+    /// <summary>
+    /// Create or update item
+    /// </summary>
+    [Parameter]
+    public LocaleResourceModel? LocaleResourceModel { get; set; }
+
+    /// <summary>
+    /// Fluent validation summary
+    /// </summary>
+    private FluentValidationSummary? FluentValidation;
+
+    /// <summary>
+    /// We add or update
+    /// </summary>
+    private string Mode => IsAdd ? T["Languages.Resources.Create"] : T["Languages.Resources.Edit"];
+
+    /// <summary>
+    /// Handle form submission request.
+    /// </summary>
+    /// <param name="isValid"><c>True</c> when field validation passed.</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    private async Task HandleSubmitAsync()
+    {
+        if (LocaleResourceModel is null)
+        {
+            return;
+        }
+
+        FluentValidation?.ClearErrors();
+
+        var validationResult = await Validator.ValidateAsync(LocaleResourceModel);
+        if (validationResult.Errors.Any())
+        {
+            var errors = new Dictionary<string, string>();
+            foreach (var error in validationResult.Errors)
+            {
+                errors.TryAdd(error.PropertyName, error.ErrorMessage);
+            }
+            FluentValidation?.DisplayErrors(errors);
+        }
+
+        var args = new HandleSubmitEventCallbackArgs { Success = validationResult.IsValid, ContinueEditing = false };
+        await ValidationResult.InvokeAsync(args);
+    }
+
+    /// <summary>
+    /// Call when EditMode is changed
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task CancelEditMode()
+    {
+        if (LocaleResourceModel is null)
+        {
+            return;
+        }
+
+        // Edit mode was cancelled
+        // revert the values from the db
+        var foundLanguageResource = await LocalizationService.GetLocaleStringResourceByIdAsync(LocaleResourceModel.Id);
+        if (foundLanguageResource == null)
+        {
+            return;
+        }
+
+        LocaleResourceModel.Id = foundLanguageResource.Id;
+        LocaleResourceModel.ResourceName = foundLanguageResource.ResourceName;
+        LocaleResourceModel.ResourceValue = foundLanguageResource.ResourceValue;
+
+        await EditModeChanged.InvokeAsync(EditMode = !EditMode);
+    }
+}

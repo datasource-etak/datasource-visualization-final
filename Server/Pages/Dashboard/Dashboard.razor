@@ -1,0 +1,557 @@
+﻿@page "/dashboard"
+@using BlazorDatasource.Shared.Infrastructure;
+@using System.Security.Claims
+@using BlazorDatasource.Server.Models.Common
+@attribute [Authorize]
+@inject NavigationManager NavigationManager
+@inject TokenProvider tokenProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<PageTitle>Datasource | Dashboard</PageTitle>
+<AuthorizeView>
+    <Authorized>
+    <article class="prose xl:max-w-none">
+        <h1>@T["Common.Dashboard"]</h1>
+        <p class="lead">@T["Common.DashboardInfoText"]</p>
+    </article>
+        <div class="my-16 xl:max-w-none">
+            <h2 id="resources" class="scroll-mt-24">
+                <div class="absolute mt-1 ml-[calc(-1*var(--width))] hidden w-[var(--width)] opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(theme(maxWidth.lg)+theme(spacing.8))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:theme(spacing.10)]">
+                    <div class="group/anchor block h-5 w-5 rounded-lg bg-secondary-100 ring-1 ring-inset ring-secondary-300 transition hover:ring-secondary-500">
+                        <svg viewBox="0 0 20 20" fill="none" stroke-linecap="round" aria-hidden="true" class="h-5 w-5 stroke-secondary-500 transition">
+                            <path d="m6.5 11.5-.964-.964a3.535 3.535 0 1 1 5-5l.964.964m2 2 .964.964a3.536 3.536 0 0 1-5 5L8.5 13.5m0-5 3 3"></path>
+                        </svg>
+                    </div>
+                </div><strong>@T["Common.FavoriteDatasets"]</strong>
+            </h2>
+            @if (Busy)
+            {
+                <div class="group-hover/chart:visible px-2 py-1 sm:px-2 ">
+                    <div class="flex p-4 bg-info-200 border-t-4 border-info-500 text-info-700" role="alert">
+                        <svg class="flex-shrink-0 animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <div class="ml-3 text-sm font-medium">
+                            @T["Common.Busy"]
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="not-prose mt-2 grid grid-cols-1 gap-8 border-t border-secondary-900/5 pt-10 sm:grid-cols-2 xl:grid-cols-2">
+                @if (FavoriteDatasets is { Count: > 0 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                <Chart ChartTitle="@ChartTitles[0]" ChartDataMultiple="ChartDataMultiples[0]" Busy="Busy" IsDefaultDatasetViewChart="DefaultChartType == ChartType.Line" Type="SelectedChartTypes[0]" />
+                            </div>
+                            <div class="mt-4" style="display: flex; flex-direction: row">
+                                <div style="width: 50%">
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>Alias:</strong> @FavoriteDatasets[0].DatasetAlias</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>x-Axis:</strong> @FavoriteDatasets[0].XAxis</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>y-Axis:</strong> @FavoriteDatasets[0].YAxis</div>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; width: 50%">
+                                    <button @onclick="@(e => NavigationManager.NavigateTo($"/dashboard/datasets/downloaded/view/{FavoriteDatasets[0].DatasetId}/{FavoriteDatasets[0].DatasetName}/{FavoriteDatasets[0].DatasetAlias}/{FavoriteDatasets[0].XAxis}/{FavoriteDatasets[0].YAxis}/{FavoriteDatasets[0].DatasetAlias}/{FavoriteDatasets[0].ChartType}"))" style="height: 32px;" class="text-white bg-secondary-900 hover:bg-secondary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-normal rounded-lg text-xs px-2 py-2">
+                                        @T["Datasets.Downloaded.View"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (FavoriteDatasets is { Count: > 1 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                <Chart ChartTitle="@ChartTitles[1]" ChartDataMultiple="ChartDataMultiples[1]" Busy="Busy" IsDefaultDatasetViewChart="DefaultChartType == ChartType.Line" Type="SelectedChartTypes[1]" />
+                            </div>
+                            <div class="mt-4" style="display: flex; flex-direction: row">
+                                <div style="width: 50%">
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>Alias:</strong> @FavoriteDatasets[1].DatasetAlias</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>x-Axis:</strong> @FavoriteDatasets[1].XAxis</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>y-Axis:</strong> @FavoriteDatasets[1].YAxis</div>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; width: 50%">
+                                    <button @onclick="@(e => NavigationManager.NavigateTo($"/dashboard/datasets/downloaded/view/{FavoriteDatasets[1].DatasetId}/{FavoriteDatasets[1].DatasetName}/{FavoriteDatasets[1].DatasetAlias}/{FavoriteDatasets[1].XAxis}/{FavoriteDatasets[1].YAxis}/{FavoriteDatasets[1].DatasetAlias}/{FavoriteDatasets[1].ChartType}"))" style="height: 32px;" class="text-white bg-secondary-900 hover:bg-secondary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-normal rounded-lg text-xs px-2 py-2">
+                                        @T["Datasets.Downloaded.View"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (FavoriteDatasets is { Count: > 2 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                <Chart ChartTitle="@ChartTitles[2]" ChartDataMultiple="ChartDataMultiples[2]" Busy="Busy" IsDefaultDatasetViewChart="DefaultChartType == ChartType.Line" Type="SelectedChartTypes[2]" />
+                            </div>
+                            <div class="mt-4" style="display: flex; flex-direction: row">
+                                <div style="width: 80%">
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>Alias:</strong> @FavoriteDatasets[2].DatasetAlias</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>x-Axis:</strong> @FavoriteDatasets[2].XAxis</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>y-Axis:</strong> @FavoriteDatasets[2].YAxis</div>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; width: 20%">
+                                    <button @onclick="@(e => NavigationManager.NavigateTo($"/dashboard/datasets/downloaded/view/{FavoriteDatasets[2].DatasetId}/{FavoriteDatasets[2].DatasetName}/{FavoriteDatasets[2].DatasetAlias}/{FavoriteDatasets[2].XAxis}/{FavoriteDatasets[2].YAxis}/{FavoriteDatasets[2].DatasetAlias}/{FavoriteDatasets[2].ChartType}"))" style="height: 32px;" class="text-white bg-secondary-900 hover:bg-secondary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-normal rounded-lg text-xs px-2 py-2">
+                                        @T["Datasets.Downloaded.View"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (FavoriteDatasets is { Count: > 3 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                <Chart ChartTitle="@ChartTitles[3]" ChartDataMultiple="ChartDataMultiples[3]" Busy="Busy" IsDefaultDatasetViewChart="DefaultChartType == ChartType.Line" Type="SelectedChartTypes[3]" />
+                            </div>
+                            <div class="mt-4" style="display: flex; flex-direction: row">
+                                <div style="width: 80%">
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>Alias:</strong> @FavoriteDatasets[3].DatasetAlias</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>x-Axis:</strong> @FavoriteDatasets[3].XAxis</div>
+                                    <div style="font-size: 12px; font-weight: normal; height: 14px;"><strong>y-Axis:</strong> @FavoriteDatasets[3].YAxis</div>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; width: 20%">
+                                    <button @onclick="@(e => NavigationManager.NavigateTo($"/dashboard/datasets/downloaded/view/{FavoriteDatasets[3].DatasetId}/{FavoriteDatasets[3].DatasetName}/{FavoriteDatasets[3].DatasetAlias}/{FavoriteDatasets[3].XAxis}/{FavoriteDatasets[3].YAxis}/{FavoriteDatasets[3].DatasetAlias}/{FavoriteDatasets[3].ChartType}"))" style="height: 32px;" class="text-white bg-secondary-900 hover:bg-secondary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-normal rounded-lg text-xs px-2 py-2">
+                                        @T["Datasets.Downloaded.View"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (FavoriteDatasets is { Count: 0 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                @T["Common.NoFavoriteDatasets"]
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <h2 id="resources" class="scroll-mt-24 mt-8">
+                <div class="absolute mt-1 ml-[calc(-1*var(--width))] hidden w-[var(--width)] opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(theme(maxWidth.lg)+theme(spacing.8))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:theme(spacing.10)]">
+                    <div class="group/anchor block h-5 w-5 rounded-lg bg-secondary-100 ring-1 ring-inset ring-secondary-300 transition hover:ring-secondary-500">
+                        <svg viewBox="0 0 20 20" fill="none" stroke-linecap="round" aria-hidden="true" class="h-5 w-5 stroke-secondary-500 transition">
+                            <path d="m6.5 11.5-.964-.964a3.535 3.535 0 1 1 5-5l.964.964m2 2 .964.964a3.536 3.536 0 0 1-5 5L8.5 13.5m0-5 3 3"></path>
+                        </svg>
+                    </div>
+                </div><strong>@T["Common.LatestDownloadedDatasets"]</strong>
+            </h2>
+            @if (Busy)
+            {
+                <div class="group-hover/chart:visible px-2 py-1 sm:px-2 ">
+                    <div class="flex p-4 bg-info-200 border-t-4 border-info-500 text-info-700" role="alert">
+                        <svg class="flex-shrink-0 animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <div class="ml-3 text-sm font-medium">
+                            @T["Common.Busy"]
+                        </div>
+                    </div>
+                </div>
+            }
+        <div class="not-prose mt-2 grid grid-cols-1 gap-8 border-t border-secondary-900/5 pt-10 sm:grid-cols-1 xl:grid-cols-1">
+            @if (DownloadedDatasets is { Count: > 0 })
+            {
+                <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                    <div class="pointer-events-none">
+                        <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                            <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                <defs>
+                                    <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                        <path d="M.5 56V.5H72" fill="none"></path>
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                <svg x="50%" y="16" class="overflow-visible">
+                                    <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                    <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                </svg>
+                            </svg>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                        <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                            <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                <defs>
+                                    <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                        <path d="M.5 56V.5H72" fill="none"></path>
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                <svg x="50%" y="16" class="overflow-visible">
+                                    <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                    <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                </svg>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                    <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            @foreach (var dataset in DownloadedDatasets.Take(5))
+                            {
+                                <a href="@($"dashboard/datasets/downloaded/view/{dataset.Uuid}/{dataset.DatasetName}/{dataset.Alias}")">
+                                    <div style="display: flex; flex-direction: row" class="mb-4 border-b border-success-500">
+                                        <div style="display: flex; flex-direction: column; width: 50%" class="mb-4">
+                                            <div style="font-size: 14px; "><strong>Name:</strong> @dataset.DatasetName</div>
+                                            <div style="font-size: 12px; "><strong>Alias:</strong> @dataset.Alias</div>
+                                            <div style="font-size: 12px; ">Id: @dataset.Uuid</div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; width: 50%" class="mb-4">
+                                            <div style="font-size: 12px; line-height: 12px;"><strong><span style="font-size: 14px;">Description:</span></strong> @dataset.DatasetDescription</div>
+                                            <div style="font-size: 12px; ">
+                                                <strong><span style="font-size: 14px;">Filters: </span></strong>
+                                                @foreach(var filter in dataset.AssociatedFilter?.Keys!)
+                                                {
+                                                    <div><strong>@filter</strong></div>
+                                                    <div style="max-height: 100px; overflow: auto;font-size: 11px; line-height: 14px;">(@string.Join(",", dataset.AssociatedFilter[filter]))</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                            <div>
+                        </div>
+                    </div>
+                </div>
+            }
+                @if (DownloadedDatasets is { Count: 0 })
+            {
+                <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                    <div class="pointer-events-none">
+                        <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                            <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                <defs>
+                                    <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                        <path d="M.5 56V.5H72" fill="none"></path>
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                <svg x="50%" y="16" class="overflow-visible">
+                                    <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                    <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                </svg>
+                            </svg>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                        <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                            <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                <defs>
+                                    <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                        <path d="M.5 56V.5H72" fill="none"></path>
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                <svg x="50%" y="16" class="overflow-visible">
+                                    <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                    <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                </svg>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                    <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                        <div>
+                                @T["Common.NoDownloadedDatasets"]
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+            <h2 id="resources" class="scroll-mt-24 mt-8">
+                <div class="absolute mt-1 ml-[calc(-1*var(--width))] hidden w-[var(--width)] opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(theme(maxWidth.lg)+theme(spacing.8))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:theme(spacing.10)]">
+                    <div class="group/anchor block h-5 w-5 rounded-lg bg-secondary-100 ring-1 ring-inset ring-secondary-300 transition hover:ring-secondary-500">
+                        <svg viewBox="0 0 20 20" fill="none" stroke-linecap="round" aria-hidden="true" class="h-5 w-5 stroke-secondary-500 transition">
+                            <path d="m6.5 11.5-.964-.964a3.535 3.535 0 1 1 5-5l.964.964m2 2 .964.964a3.536 3.536 0 0 1-5 5L8.5 13.5m0-5 3 3"></path>
+                        </svg>
+                    </div>
+                </div><strong>@T["Common.LatestSearchQueries"]</strong>
+            </h2>
+            @if (Busy)
+            {
+                <div class="group-hover/chart:visible px-2 py-1 sm:px-2 ">
+                    <div class="flex p-4 bg-info-200 border-t-4 border-info-500 text-info-700" role="alert">
+                        <svg class="flex-shrink-0 animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <div class="ml-3 text-sm font-medium">
+                            @T["Common.Busy"]
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="not-prose mt-2 grid grid-cols-1 gap-8 border-t border-secondary-900/5 pt-10 sm:grid-cols-1 xl:grid-cols-1">
+                @if (SearchQueries is { Count: > 0 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            @foreach (var searchQuery in SearchQueries.OrderByDescending(i => i.CreatedDate).Take(10))
+                            {
+                                <a href="@($"dashboard/datasets/search/{searchQuery.Keyword}")">
+                                    <div style="display: flex; flex-direction: row" class="mb-4">
+                                        <div style="display: flex; flex-direction: column; width: 30%">
+                                            <div style="font-size: 14px;"><strong>Keyword:</strong> @searchQuery.Keyword</div>
+                                            <div style="font-size: 12px;">Id: @searchQuery.Id</div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; width: 70%">
+                                            <div style="font-size: 14px; line-height: 14px;"><strong>Description:</strong> @searchQuery.Name</div>
+                                            <div style="font-size: 12px;">
+                                                <strong>Created date: </strong>
+                                                @searchQuery.CreatedDate
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (SearchQueries is { Count: 0 })
+                {
+                    <div class="group relative flex rounded-2xl bg-secondary-100 transition-shadow hover:shadow-md hover:shadow-secondary-900/5">
+                        <div class="pointer-events-none">
+                            <div class="absolute inset-0 rounded-2xl transition duration-300 [mask-image:linear-gradient(white,transparent)] group-hover:opacity-50">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/[0.02] stroke-black/5">
+                                    <defs>
+                                        <pattern id=":R56hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R56hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r @*from-[#D7EDEA] to-[#F4FBDF]*@ from-primary-200 to-primary-50 opacity-0 transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);"></div>
+                            <div class="absolute inset-0 rounded-2xl opacity-0 mix-blend-overlay transition duration-300 group-hover:opacity-100" style="mask-image: radial-gradient(180px at 23px 39px, white, transparent);">
+                                <svg aria-hidden="true" class="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/50 stroke-black/70">
+                                    <defs>
+                                        <pattern id=":R1d6hd6:" width="72" height="56" patternUnits="userSpaceOnUse" x="50%" y="16">
+                                            <path d="M.5 56V.5H72" fill="none"></path>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" stroke-width="0" fill="url(#:R1d6hd6:)"></rect>
+                                    <svg x="50%" y="16" class="overflow-visible">
+                                        <rect stroke-width="0" width="73" height="57" x="0" y="56"></rect>
+                                        <rect stroke-width="0" width="73" height="57" x="72" y="168"></rect>
+                                    </svg>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-secondary-900/7.5 group-hover:ring-secondary-900/10"></div>
+                        <div class="relative rounded-2xl px-4 pt-5 pb-4 w-full">
+                            <div>
+                                @T["Common.NoSearchQueries"]
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
